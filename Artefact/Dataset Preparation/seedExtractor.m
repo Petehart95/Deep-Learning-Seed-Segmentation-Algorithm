@@ -10,70 +10,99 @@ close all; clc; clear; % Reset environment.
 %%%%%%%%%%%%%%%%%%%%%% IMAGE ACQUISITION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-selectedFile = 'C:\Users\Peter Hart\Documents\GitHub\MCompResearchProject\Artefact\Dataset Preparation\Images\Capture_00220.jpg';
-im = imread(selectedFile); % Gather input
 
-width = 500; % Set a new width size for the image. (Height will be scaled).
-dim = size(im(:,:,:));  
-im = imresize(im,[width*dim(1)/dim(2) width],'bicubic');
-dim = size(im(:,:,:));  
+% Dialog box for file selection (filter = .jpg,.png)
+[fileNames, pathName, filterIndex] = uigetfile({'*.jpg;*.png;','All Image Files';'*.*','All Files'},'Select Input Images...','MultiSelect', 'on');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%% PRE-PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check if only one file is selected
+if ~iscell(fileNames)
+    fileNames = {fileNames}; % If only one file is selected, ensure the file name is cell and not character
+end 
+totalFiles = size(fileNames,2); % Store total count for how many files are going to be processed.
 
-srgb2lab = makecform('srgb2lab');
-lab2srgb = makecform('lab2srgb');
+objCTR = 1;
+h = waitbar(0,'Initializing waitbar...');
 
-im_lab = applycform(im, srgb2lab);
+for fileid=1:totalFiles % Iterate until processed all selected files
+    selectedFile = strcat(pathName,char(fileNames(fileid))); %concatenate selected file and the folder path
+    im = imread(selectedFile); % Gather input
 
-max_luminosity = 100; 
-L = im_lab(:,:,1)/max_luminosity;
+    width = 500; % Set a new width size for the image. (Height will be scaled).
+    dim = size(im(:,:,:));  
+    im = imresize(im,[width*dim(1)/dim(2) width],'bicubic');
+    dim = size(im(:,:,:));  
 
-im_adapthisteq = im_lab;
-im_adapthisteq(:,:,1) = adapthisteq(L)*max_luminosity;
-im_adapthisteq = applycform(im_adapthisteq,lab2srgb);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%% PRE-PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-im_greyscale = im_adapthisteq(:,:,1);
+    srgb2lab = makecform('srgb2lab');
+    lab2srgb = makecform('lab2srgb');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%% IMAGE SEGMENTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    im_lab = applycform(im, srgb2lab);
 
-threshold = 254;
-im_BI = rgb2bi(im_greyscale,threshold);
+    max_luminosity = 100; 
+    L = im_lab(:,:,1)/max_luminosity;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%% OBJECT DETECTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    im_adapthisteq = im_lab;
+    im_adapthisteq(:,:,1) = adapthisteq(L)*max_luminosity;
+    im_adapthisteq = applycform(im_adapthisteq,lab2srgb);
 
-im_cc = bwconncomp(im_BI);
-im_labelled = labelmatrix(im_cc);
+    im_greyscale = im_adapthisteq(:,:,1);
 
-for x=1:im_cc.NumObjects 
-    objectMatrix = zeros(size(im_BI));
-    for i=1:size(im_labelled,1)
-        for j=1:size(I_labelled,2)
-            if (im_labelled(i,j) == x) 
-                %Find a way to add this object matrix to a vector of
-                %objectsgithub
-                objectMatrix(i,j) = I_openclose(i,j);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%% IMAGE SEGMENTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    threshold = 254;
+    im_bi = rgb2bi(im_greyscale,threshold);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%% POST PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    im_bi = imfill(im_bi,'holes');
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%% OBJECT DETECTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    im_cc = bwconncomp(im_bi);
+    im_labelled = labelmatrix(im_cc);
+
+    objectBB = [];
+    objectAreas = [];
+    objectMatrices = [];
+    
+    for x=1:im_cc.NumObjects 
+        objectMatrix = [];
+
+        for i=1:size(im_labelled,1)
+            for j=1:size(im_labelled,2)
+                if (im_labelled(i,j) == x) 
+                    objectMatrix(i,j) = im_bi(i,j);
+                end
             end
         end
+        objectMatrices = [objectMatrices objectMatrix];
+        objectBB = [objectBB regionprops(objectMatrix, 'BoundingBox' )];
+        objectAreas = [objectAreas bwarea(objectMatrix)];
     end
+    for k = 1:length(objectBB)
+        averageArea = sum(objectAreas) / length(objectAreas);
+        thisBB = objectBB(k).BoundingBox;
+        im_crop = imcrop(objectMatrices(k), thisBB);
+        if objectAreas(k) > averageArea
+            s = strcat('seed_',num2str(objCTR),'.png');
+            imwrite(im_crop,char(s));
+            objCTR = objCTR +  1;
+        end
+    end
+    perc = (fileid/totalFiles)*100;
+    h = waitbar(perc/100,h,sprintf('%1.1f%% along...',perc));
 end
 
-st = regionprops(im_BI, 'BoundingBox' );
-imshow(im_BI);
-hold on;
-for k = 1 : length(st)
-  thisBB = st(k).BoundingBox;
-  rectangle('Position', [thisBB(1),thisBB(2),thisBB(3),thisBB(4)],...
-  'EdgeColor','r','LineWidth',2 )
-end
-
-
-
+close(h);
 
 function im_BI = rgb2bi(im_greyscale,threshold)
     dim = size(im_greyscale(:,:));  
@@ -89,12 +118,5 @@ function im_BI = rgb2bi(im_greyscale,threshold)
         end
     end
 end
-
-% images = {pout, tire, shadow};
-% 
-% for k = 1:3
-%   dim = size(images{k});
-%   images{k} = imresize(images{k},[width*dim(1)/dim(2) width],'bicubic');
-% end
 
 %end of script
