@@ -72,11 +72,12 @@ for fileid=1:totalFiles % Iterate until processed all selected files
 
     objectBB = [];
     objectAreas = [];
-    objectMatrices = [];
-    
+    topWidth = 0;
+    topHeight = 0;
     for x=1:im_cc.NumObjects 
         objectMatrix = [];
-
+        thisWidth = 0;
+        thisHeight = 0;
         for i=1:size(im_labelled,1)
             for j=1:size(im_labelled,2)
                 if (im_labelled(i,j) == x) 
@@ -84,25 +85,48 @@ for fileid=1:totalFiles % Iterate until processed all selected files
                 end
             end
         end
-        objectMatrices = [objectMatrices objectMatrix];
-        objectBB = [objectBB regionprops(objectMatrix, 'BoundingBox' )];
+        %objectMatrices = [objectMatrices objectMatrix];
+        
+        currentBB = regionprops(objectMatrix,'BoundingBox');
+
+        objectBB = [objectBB currentBB];
         objectAreas = [objectAreas bwarea(objectMatrix)];
+        
+        currentBB = currentBB.BoundingBox;
+        thisHeight = currentBB(:,3);%height
+        thisWidth = currentBB(:,4);%height
+        
+        if thisHeight > topHeight
+            topHeight = thisHeight;
+        end
+        
+        if thisWidth > topWidth
+            topWidth = thisWidth;
+        end
     end
     for k = 1:length(objectBB)
         averageArea = sum(objectAreas) / length(objectAreas);
         thisBB = objectBB(k).BoundingBox;
-        im_crop = imcrop(objectMatrices(k), thisBB);
+        im_crop = imcrop(im, thisBB);
+
         if objectAreas(k) > averageArea
+            this_Height = thisBB(:,3);%height
+            this_Width = thisBB(:,4);%height
+            padWidth = topWidth - this_Width + 1;
+            padHeight = topHeight - this_Height + 1;
+%             if padWidth > 0 || padHeight > 0
+%                 im_crop = padarray(im_crop,[padWidth padHeight],'replicate','both');
+%                 %im_crop = imresize(im_crop,[padHeight padWidth]);
+%             end
             s = strcat('seed_',num2str(objCTR),'.png');
             imwrite(im_crop,char(s));
             objCTR = objCTR +  1;
         end
     end
     perc = (fileid/totalFiles)*100;
-    h = waitbar(perc/100,h,sprintf('%1.1f%% along...',perc));
+    waitbar(perc/100,h,sprintf('%1.1f%% along...',perc));
 end
 
-close(h);
 
 function im_BI = rgb2bi(im_greyscale,threshold)
     dim = size(im_greyscale(:,:));  
