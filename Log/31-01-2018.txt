@@ -1,0 +1,15 @@
+Despite my efforts throughout this project so far, progress on developing the CNN model has been slow due to lack of experience in this field.
+Complications with the code has made it difficult to debug issues incurred from tensorflow and keras.
+Therefore, a log is now being compiled on a daily basis to ensure that sufficient progress can be noted and learned from on a daily basis.
+Fortunately, contingency time was built into the project plan, so there is time for the project to catch-up to a more desirable phase.
+----
+31-01-2018
+- Restarting pre-trained CNN model.
+- Now attempting to build a pre-trained CNN model using the ImageNet database for the model weights.
+- Initially using a flower-based dataset, but hoping to use a seed dataset later.
+- Issues with the keras package: unable to access a layer. Will debug tomorrow.
+
+Plan for tomorrow:
+- Establish a working version with the flower dataset
+- Resolve seed dataset
+- Begin preparations for using the pre-trained model on the seed dataset.
