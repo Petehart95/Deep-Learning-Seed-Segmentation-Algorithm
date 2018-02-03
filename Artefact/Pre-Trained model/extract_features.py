@@ -65,6 +65,8 @@ elif model_name == "resnet50":
   print("resnet50")
 elif model_name == "inceptionv3":
   base_model = InceptionV3(include_top=include_top, weights=weights, input_tensor=Input(shape=(299,299,3)))
+  print(base_model)
+  print("hello")
   model = Model(input=base_model.input, output=base_model.get_layer('custom').output)
   image_size = (299, 299)
   print("inceptionv3")
@@ -111,6 +113,7 @@ for i, label in enumerate(train_labels):
     x = np.expand_dims(x, axis=0)
     x = preprocess_input(x)
     feature = model.predict(x)
+    print (feature)
     flat = feature.flatten()
     features.append(flat)
     labels.append(label)
