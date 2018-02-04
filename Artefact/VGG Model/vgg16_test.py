@@ -1,22 +1,21 @@
-from keras.applications.vgg16 import VGG16
+from keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions
 from keras.applications.vgg19 import VGG19
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
-from keras.applications.vgg16 import preprocess_input
-from keras.applications.vgg16 import decode_predictions
+from keras.preprocessing.image import load_img, img_to_array, ImageDataGenerator
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
-model = VGG16()
+model = VGG16(weights='imagenet',include_top=False,input_shape=(224,224,3))
+model.summary()
+
 dir_path = os.getcwd()
 
 for image_path in os.listdir(dir_path):
-
-    print(image_path)
     if image_path == 'vgg16_test.py':
         continue
     else:
-        image = load_img(image_path, target_size=(224,224))
+        print(image_path)
+        image = load_img(image_path, target_size=(224,224,3))
         
         
         plt.imshow(image)
