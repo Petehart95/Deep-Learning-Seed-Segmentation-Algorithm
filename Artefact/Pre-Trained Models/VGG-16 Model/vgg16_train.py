@@ -5,14 +5,14 @@ from keras.layers import Dropout, Flatten, Dense
 from keras import applications
 
 # dimensions of our images.
-img_width, img_height = 150, 150
+img_width, img_height = 300, 300
 
 top_model_weights_path = 'bottleneck_fc_model.h5'
 train_data_dir = './dataset/train'
 validation_data_dir = './dataset/validation'
 nb_train_samples = 2000
 nb_validation_samples = 800
-epochs = 50
+epochs = 100
 batch_size = 16
 
 
@@ -68,7 +68,6 @@ def train_top_model():
               batch_size=batch_size,
               validation_data=(validation_data, validation_labels))
     model.save_weights(top_model_weights_path)
-
 
 save_bottlebeck_features()
 train_top_model()
