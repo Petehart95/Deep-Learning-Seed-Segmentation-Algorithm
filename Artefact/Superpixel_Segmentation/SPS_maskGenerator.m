@@ -1,4 +1,4 @@
-% MComp Research Project | Superpixel Segmentation Script
+ % MComp Research Project | Superpixel Segmentation Script
 
 close all; clc; clear; % Reset environment.
 
@@ -24,7 +24,9 @@ if ~exist(outDir,'dir')
     mkdir(outDir);
 end
 
-h = waitbar(0,'Files Processed: 0% along...');
+if totalFiles > 0
+    h = waitbar(0,'Files Processed: 0% along...');
+end
 
 for fileid=1:totalFiles % Iterate until processed all selected files
     width = 1024; % Set a new width size for the image. (Height will be scaled).
@@ -80,7 +82,10 @@ for fileid=1:totalFiles % Iterate until processed all selected files
     maxArea = round(max(objectAreas));
     Iout = bwareaopen(im_bi, averageArea);
     
-    newFileName = strcat('seedmask_',num2str(fileid),'.jpeg');
+    %newFileName = strcat('seedmask_',num2str(fileid),'.jpeg');
+    newFileName = fileNames(fileid);
+    newFileName = erase(newFileName,'.jpg');
+    newFileName = strcat(newFileName,'.png');
     fullDestinationFileName = fullfile(outDir, newFileName);
     imwrite(Iout,char(fullDestinationFileName));
     
