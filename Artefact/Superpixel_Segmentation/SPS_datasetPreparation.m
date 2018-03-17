@@ -140,7 +140,7 @@ for fileid=1:totalFiles % Iterate until processed all selected files
 end
 %save bounding box positions in table
 %write table to a text file
-writetable(Tnew,'SPS_coordinates.txt','Delimiter',',','WriteRowNames',false)  
+writetable(Tnew,'SPS_coordinates.txt','Delimiter',',')  
 
 close(h1);
 close(h2); %terminate progress bars
