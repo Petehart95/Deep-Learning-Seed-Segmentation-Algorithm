@@ -15,8 +15,7 @@ close all; clc; clear; % Reset environment.
 currentDir = pwd;
 outDir1 = strcat(currentDir,'\superDataset\training\seed');
 outDir2 = strcat(currentDir,'\superDataset\training\background');
-outDir3 = strcat(currentDir,'\superDataset\mask\seed');
-outDir4 = strcat(currentDir,'\superDataset\mask\background');
+outDir3 = strcat(currentDir,'\superDataset\mask');
 maskDir = strcat(currentDir,'\maskDataset');
 
 [maskFilePaths,maskFileNames] = getAllFiles(maskDir); 
@@ -52,10 +51,6 @@ end
 
 if ~exist(outDir3,'dir')
     mkdir(outDir3);
-end
-
-if ~exist(outDir4,'dir')
-    mkdir(outDir4);
 end
 
 superID_master = 0;
@@ -127,7 +122,7 @@ for fileid=1:totalFiles % Iterate until processed all selected files
                 imwrite(maskOverlay,char(fullDestinationFileName2));
             else
                 fullDestinationFileName1 = fullfile(outDir2, newFileName);
-                fullDestinationFileName2 = fullfile(outDir4, newFileName);
+                fullDestinationFileName2 = fullfile(outDir3, newFileName);
                 imwrite(imCropped,char(fullDestinationFileName1));
                 imwrite(maskOverlay,char(fullDestinationFileName2));
             end
