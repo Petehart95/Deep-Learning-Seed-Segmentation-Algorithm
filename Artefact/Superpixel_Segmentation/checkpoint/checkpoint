@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\Peter Hart\\Documents\\GitHub\\MCompResearchProject\\Artefact\\Superpixel_Segmentation\\checkpoint\\seeds-background-model.ckpt"
+all_model_checkpoint_paths: "C:\\Users\\Peter Hart\\Documents\\GitHub\\MCompResearchProject\\Artefact\\Superpixel_Segmentation\\checkpoint\\seeds-background-model.ckpt"

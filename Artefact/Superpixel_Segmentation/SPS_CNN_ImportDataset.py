@@ -17,11 +17,16 @@ def load_train(train_path, image_size, classes):
         path = os.path.join(train_path, fields, '*g')
         files = glob.glob(path)
         for fl in files:
-            image = cv2.imread(fl)
-            image = cv2.resize(image,(image_size, image_size),0,0,cv2.INTER_LINEAR)
-            image = image.astype(np.float32)
-            image = np.multiply(image, 1.0 / 255.0)
-            images.append(image)
+            # Reading the image using OpenCV
+            bgr_img = cv2.imread(fl)
+            b,g,r = cv2.split(bgr_img)       # get b,g,r
+            rgb_img = cv2.merge([r,g,b])     # switch it to rgb    
+            
+            rgb_img = cv2.resize(rgb_img, (image_size, image_size), 0, 0, cv2.INTER_LINEAR)
+            rgb_img = rgb_img.astype(np.float32)
+            rgb_img = np.multiply(rgb_img, 1.0 / 255.0)
+            images.append(rgb_img)
+            
             label = np.zeros(len(classes))
             label[index] = 1.0
             labels.append(label)
