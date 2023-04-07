@@ -1,7 +1,7 @@
 # Seed-Segmentation-with-Deep-Learning-Project
 Developing a Seed Segmentation and Feature Extraction Algorithm Which Incorporates a Deep-Learning Architecture. [MComp Final Year Project]
 
-The following project reviews the development of an image segmentation algorithm using deeplearning strategies and its possible application within the field of botany image processing. Ultimately, 
+The following project reviews the development of an image segmentation algorithm using deep learning strategies and its possible application within the field of botany image processing. Ultimately, 
 this project followed the development of a superpixel convolutional neural network image segmentation 
 algorithm, an algorithm which theoretically should combine the benefits of both techniques. This 
 algorithm was applied to a series of different samples of seed image data, whereby the algorithm 
